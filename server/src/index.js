@@ -2,6 +2,7 @@ import { CORS_HEADERS } from './lib/cors'
 import { getPathAndFilename, isRoute } from './lib/utils'
 
 import chat from './routes/chat'
+import transcribe from './routes/transcribe'
 
 const server = Bun.serve({
     port: process.env.SERVER_PORT,
@@ -23,6 +24,8 @@ const server = Bun.serve({
         return new Response("this is a test", { headers: CORS_HEADERS, })
       } else if(isRoute('/chat', pathname)) {
         return chat(req)
+      } else if(isRoute('/transcribe', pathname)) {
+        return transcribe(req)
       } else {
         if(pathname === "/") {
           return new Response(Bun.file("./public/index.html"))
