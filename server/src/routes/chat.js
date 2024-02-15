@@ -140,7 +140,14 @@ route.post('/stream', async (req) => {
                                 let tool_output = { status: 'error', message: 'function not found' }
 
                                 if(tool.function.name === 'get_weather') {
-                                    tool_output = { status: 'success', outlook: 'cloudy', temperature: 12.5, unit: 'celsius', ...tool_params }
+
+                                    const mock_temp = (10 + 20 * Math.random()).toFixed(1)
+
+                                    const mock_outlook = ['sunny', 'cloudy', 'rainy']
+
+                                    const mock_chance = Math.floor(mock_outlook.length * Math.random())
+
+                                    tool_output = { status: 'success', outlook: mock_outlook[mock_chance], temperature: mock_temp, unit: 'celsius', ...tool_params }
                                 }
 
                                 console.log(tool_output)
