@@ -311,7 +311,7 @@ class App extends React.Component {
     this.chunks.push(e.data)
   }
 
-  handleStop() {
+  async handleStop() {
     
     console.log("stop", (new Date()).toLocaleTimeString())
 
@@ -328,6 +328,41 @@ class App extends React.Component {
     if(file.size === 0) return
 
     console.log('send audio data...', (new Date()).toLocaleTimeString())
+
+    this.setState({
+      isLoading: true,
+    })
+
+    try {
+
+      let formData1 = new FormData()
+      formData1.append('file', file, name)
+      formData1.append('name', name)
+
+      const response = await fetch(`${this.baseUrl}/transcribe`, {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json'
+          },
+          body: formData1,
+          signal: this.abortControllerRef.current.signal,
+      })
+
+      const result = await response.json()
+
+      console.log('voice', result, (new Date()).toLocaleTimeString())
+      
+    } catch(error) {
+
+      console.log(error.message)
+      
+    } finally {
+
+      this.setState({
+        isLoading: false
+      })
+
+    }
 
   }
   
