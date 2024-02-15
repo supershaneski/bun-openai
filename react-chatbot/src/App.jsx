@@ -9,8 +9,13 @@ import SendIcon from '@mui/icons-material/Send'
 import ClearIcon from '@mui/icons-material/Clear'
 import MicOffIcon from '@mui/icons-material/MicOff'
 import RestartIcon from '@mui/icons-material/RestartAlt'
+import AccountIcon from '@mui/icons-material/AccountCircle'
 
+import LoadingText from './components/loadingtext'
+import OpenAiIcon from './components/openaiicon'
 import MicButton from './components/micbutton'
+
+import { storeMessages, getStoredMessages, getDatetime } from './lib/utils'
 
 import classes from './App.module.css'
 
@@ -25,6 +30,8 @@ class App extends React.Component {
     this.inputRef = React.createRef()
     this.messageRef = React.createRef()
 
+    let default_messages = getStoredMessages()
+
     this.state = {
       isVoiceEnabled: false,
       isMicOn: false,
@@ -32,12 +39,13 @@ class App extends React.Component {
       isSpeaking: false,
       
       isLoading: false,
+      isLoadingText: false,
       isComposing: false,
       isCountDown: false,
 
       inputText: '',
 
-      messageItems: [],
+      messageItems: default_messages,
     }
 
     this.timer = null
@@ -105,7 +113,7 @@ class App extends React.Component {
   componentWillUnmount() {
     
     try {
-
+      
       if(this.abortControllerRef.current) {
         this.abortControllerRef.current.abort()
       }
@@ -126,6 +134,7 @@ class App extends React.Component {
     }
 
   }
+
 
   handleError(error) {
     console.log('Error', error)
@@ -334,7 +343,10 @@ class App extends React.Component {
     this.setState({
       inputText: '',
       isLoading: true,
+      isLoadingText: true,
     })
+
+    this.scrollToTop()
 
     await this.submitQuery(text)
 
@@ -393,6 +405,7 @@ class App extends React.Component {
       
       this.setState((prev) => ({
         messageItems: [...prev.messageItems, ...[new_assistant_message]],
+        isLoadingText: false,
       }))
 
       let is_completed = false
@@ -427,15 +440,25 @@ class App extends React.Component {
 
       }
     } catch(error) {
+      
       console.log(error.message)
-    } finally {
 
+    } finally {
+      
+      //localStorage.setItem('bun/openai/message/items', JSON.stringify(this.state.messageItems))
+      
       this.setState({
-        isLoading: false
+        isLoading: false,
+        isLoadingText: false,
       })
 
       setTimeout(() => {
+        
+        //localStorage.setItem('bun/openai/message/items', JSON.stringify(this.state.messageItems))
+        storeMessages(this.state.messageItems)
+
         this.inputRef.current.focus()
+
       }, 300)
 
     }
@@ -499,9 +522,14 @@ class App extends React.Component {
   }
 
   handleReset() {
+
     this.setState({
       messageItems: [],
     })
+
+
+    localStorage.setItem('bun/openai/message/items', JSON.stringify([]))
+    
   }
 
   render() {
@@ -522,14 +550,29 @@ class App extends React.Component {
           <div ref={this.messageRef} className={classes.messages}>
           {
             this.state.messageItems.map((item) => {
+              const classDiv = item.role === 'user' ? `${classes.message} ${classes.user}` : classes.message
               return (
-                <div key={item.id} className={classes.message}>
-                  <div className={classes.text}>
-                  <strong>{item.role}</strong>: {item.content}
+                <div key={item.id} className={classDiv}>
+                  <div className={classes.avatar}>
+                    {
+                      item.role === 'user' ? <AccountIcon /> : <OpenAiIcon />
+                    }
+                  </div>
+                  <div className={classes.textpanel}>
+                    <div className={classes.text}>
+                      <div className={classes.textContent}>{item.content}</div>
+                      <div className={classes.datetime}>{getDatetime(item.id)}</div>
+                    </div>
                   </div>
                 </div>
               )
             })
+          }
+          {
+            this.state.isLoadingText &&
+            <div className={classes.loading}>
+              <LoadingText />
+            </div>
           }
           </div>
         </div>
@@ -545,6 +588,7 @@ class App extends React.Component {
               disabled={this.state.isMicOn || this.state.isLoading}
               fullWidth
               multiline
+              autoFocus
               //minRows={1}
               maxRows={3}
               inputRef={this.inputRef}
