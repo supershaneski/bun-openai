@@ -1,0 +1,41 @@
+body {
+    min-height: 100vh;
+    color: #282828;;
+    background: #ffffff;
+    transition: color 0.5s, background-color 0.5s;
+    line-height: 1.6;
+    font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    'Fira Sans',
+    'Droid Sans',
+    'Helvetica Neue',
+    sans-serif;
+    font-size: 15px;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+.container {
+    position: relative;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.title {
+    font-size: 1.2rem;
+    margin-right: 1rem;
+}
+.image {
+    width: 120px;
+    height: auto;
+    border-radius: 50%;
+}

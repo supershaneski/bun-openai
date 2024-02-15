@@ -1,0 +1,21 @@
+{
+  "name": "server",
+  "version": "0.0.1",
+  "description": "A sample Bun server powered by OpenAI APIs.",
+  "module": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "bun run src/index.js"
+  },
+  "author": "supershaneski",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "openai": "latest"
+  }
+}

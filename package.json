@@ -1,0 +1,8 @@
+{
+  "name": "bun-openai",
+  "private": true,
+  "workspaces": [
+    "server",
+    "react-chatbot"
+  ]
+}

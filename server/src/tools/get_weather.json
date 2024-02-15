@@ -1,0 +1,18 @@
+{
+    "name": "get_weather",
+    "description": "Get the weather for a specified location and date",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "location": {
+                "type": "string",
+                "description": "The city, e.g. Tokyo, New York"
+            },
+            "date": {
+                "type": "string",
+                "description": "The date for the weather forecast, e.g. today, 2023-10-19"
+            }
+        },
+        "required": ["location", "date"]
+    }
+}
