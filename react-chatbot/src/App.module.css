@@ -65,17 +65,18 @@
   display: flex;
 }
 .text {
-  background-color: #fff;
+  background-color: #0084ff;
   padding: .5rem;
   border-radius: 5px;
 }
 .textContent {
   white-space: pre-wrap;
+  color: #fff;
 }
 .datetime {
   margin-top: .25rem;
   font-size: .7rem;
-  color: #21354799;
+  color: #fff9;
   text-align: right;
 }
 .user .avatar {
@@ -85,8 +86,15 @@
   order: 1;
   justify-content: flex-end;
 }
+.user .text {
+  background-color: #fff;
+}
+.user .textContent {
+  color: #213547;
+}
 .user .datetime {
   text-align: left;
+  color: #21354799;
 }
 .control {
   box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
