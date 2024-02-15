@@ -16,7 +16,7 @@
     height: 36px;
     box-sizing: border-box;
     border-radius: 50%;
-    border: 1px solid #f669;
+    border: 1px solid #0084ff99; /*f669 0084ff*/
 }
 .animated {
     animation: anim1 1s ease-in-out infinite
@@ -41,7 +41,7 @@
     border: 1px solid #999;
 }*/
 .lineOn {
-    border: 1px solid #f669;
+    border: 1px solid #0084ff99;
 }
 .button {
     background-color: transparent;
@@ -68,7 +68,7 @@
     color: #555;
 }
 .iconOn {
-    color: #f99;
+    color: #0084ff;
 }
 .iconOff {
     color: #bbb;
