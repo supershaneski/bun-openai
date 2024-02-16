@@ -116,8 +116,12 @@ class App extends React.Component {
 
     } else {
 
-        console.log('Voice call not supported')
+      console.log('Voice call not supported')
 
+    }
+
+    if(this.state.messageItems.length > 0) {
+      this.scrollToTop()
     }
 
   }
@@ -369,6 +373,7 @@ class App extends React.Component {
 
       if(result.text) {
 
+        /*
         this.setState({
           isLoadingText: true,
         })
@@ -376,6 +381,11 @@ class App extends React.Component {
         this.scrollToTop()
 
         await this.submitQuery(result.text)
+        */
+
+        this.setState({
+          isLoading: false
+        })
 
       } else {
 
