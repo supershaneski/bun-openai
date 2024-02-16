@@ -123,7 +123,7 @@ route.post('/', async (req) => {
                 return new Response(JSON.stringify({
                     text: '',
                 }), {
-                    status: 200,
+                    status: 200, headers: CORS_HEADERS
                 })
 
             }
