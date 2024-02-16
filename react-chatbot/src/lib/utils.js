@@ -33,7 +33,7 @@ function getMonthName(month) {
   return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][month]
 }
 
-export function getDatetime(stime) {
+export function getDatetime(stime, mode = 0) {
 
   const now = new Date()
 
@@ -66,11 +66,24 @@ export function getDatetime(stime) {
       return `${month} ${sdate}`
     } else {
       if(now_date !== sdate) {
-        return [`${month} ${sdate}`,[shour, sminute].join(':')].join(' ')
+        return mode > 0 ? `${month} ${sdate}` : [`${month} ${sdate}`,[shour, sminute].join(':')].join(' ')
       } else {
-        return [shour, sminute].join(':')
+        return mode > 0 ? 'Today' : [shour, sminute].join(':')
       }
     }
   }
   
+}
+
+export function formatDatetime(datetime) {
+  const odate = new Date(datetime)
+
+  let syear = odate.getFullYear()
+  let smonth = odate.getMonth() + 1
+  let sdate = odate.getDate()
+  smonth = formatNumber(smonth)
+  sdate = formatNumber(sdate)
+
+  return [syear, smonth, sdate].join('-')
+
 }

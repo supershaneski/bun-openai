@@ -1,0 +1,39 @@
+.container {
+    background-color: rgba(0, 0, 0, 0.5);
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.dialog {
+    position: relative;
+    background-color: #fff;
+    border-radius: 6px;
+    /*padding: 3rem;*/
+    padding: .5rem;
+    /*display: flex;
+    flex-direction: column;
+    align-items: center;*/
+}
+
+.content {
+    position: relative;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.italic {
+    font-weight: 600;
+}
+
+.action {
+    position: relative;
+    display: flex;
+    justify-content: flex-end;
+}

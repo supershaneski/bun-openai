@@ -40,6 +40,21 @@
   overflow-y: auto;
 }
 
+.datelabel {
+  position: relative;
+  padding: 1rem 0;
+  display: flex;
+  justify-content: center;
+}
+.datelabeltext {
+  background-color: #dce6ef;
+  color: #21354799;
+  font-size: .8rem;
+  font-weight: 600;
+  padding: .125rem .5rem;
+  border-radius: 1rem;
+}
+
 .message {
   /*background-color: #efd;*/
   padding-top: .5rem;

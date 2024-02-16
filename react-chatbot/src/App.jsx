@@ -1,4 +1,5 @@
 import React from 'react'
+import { createPortal } from 'react-dom'
 
 import Box from '@mui/material/Box'
 import IconButton from '@mui/material/IconButton'
@@ -12,11 +13,12 @@ import MicOffIcon from '@mui/icons-material/MicOff'
 import RestartIcon from '@mui/icons-material/RestartAlt'
 import AccountIcon from '@mui/icons-material/AccountCircle'
 
+import DialogSettings from './components/dialogsettings'
 import LoadingText from './components/loadingtext'
 import OpenAiIcon from './components/openaiicon'
 import MicButton from './components/micbutton'
 
-import { storeMessages, getStoredMessages, getDatetime } from './lib/utils'
+import { storeMessages, getStoredMessages, getDatetime, formatDatetime } from './lib/utils'
 
 import classes from './App.module.css'
 
@@ -33,6 +35,7 @@ class App extends React.Component {
     this.inputRef = React.createRef()
     this.messageRef = React.createRef()
 
+    // simple persistent data
     let default_messages = getStoredMessages()
 
     this.state = {
@@ -45,11 +48,14 @@ class App extends React.Component {
       isLoadingText: false,
       isComposing: false,
       isCountDown: false,
-
+      isSettingsShown: false,
+      
       inputText: '',
 
       messageItems: default_messages,
     }
+
+    this.apiMode = 'chat-api-streaming'
 
     this.timer = null
     this.count = 0
@@ -83,6 +89,8 @@ class App extends React.Component {
 
     this.handleReset = this.handleReset.bind(this)
     this.handleSettings = this.handleSettings.bind(this)
+    this.handleCloseSettings = this.handleCloseSettings.bind(this)
+    this.handleUpdateSettings = this.handleUpdateSettings.bind(this)
 
   }
 
@@ -505,8 +513,6 @@ class App extends React.Component {
 
     } finally {
       
-      //localStorage.setItem('bun/openai/message/items', JSON.stringify(this.state.messageItems))
-      
       this.setState({
         isLoading: false,
         isLoadingText: false,
@@ -514,7 +520,7 @@ class App extends React.Component {
 
       setTimeout(() => {
         
-        //localStorage.setItem('bun/openai/message/items', JSON.stringify(this.state.messageItems))
+        // store data in persistent storage
         storeMessages(this.state.messageItems)
 
         this.inputRef.current.focus()
@@ -593,15 +599,65 @@ class App extends React.Component {
   }
 
   handleSettings() {
-    //
+    
+    this.setState({
+      isSettingsShown: true,
+    })
+
+  }
+
+  handleCloseSettings() {
+
+    this.setState({
+      isSettingsShown: false,
+    })
+
+  }
+
+  handleUpdateSettings(mode) {
+
+    console.log(mode)
+
+    this.apiMode = mode
+
+    this.setState({
+      isSettingsShown: false,
+    })
+
   }
 
   render() {
 
-    /*
-      <MicButton mode={this.state.isMicOn ? 1 : this.state.isRecording ? 2 : 0} disabled={!this.state.isVoiceEnabled || this.state.isLoading} onClick={this.handleMic} />
-                  
-    */
+    let display_data = []
+    let sdatetime = ''
+    this.state.messageItems.forEach((item, index) => {
+
+      const datetime = formatDatetime(item.id)
+      
+      if(index === 0) {
+        
+        sdatetime = datetime
+
+        display_data.push({ id: sdatetime, role: 'datetime', content: sdatetime })
+        display_data.push(item)
+
+      } else {
+
+        if(datetime !== sdatetime) {
+          
+          sdatetime = datetime
+
+          display_data.push({ id: sdatetime, role: 'datetime', content: sdatetime })
+          display_data.push(item)
+
+        } else {
+          display_data.push(item)
+        }
+
+      }
+
+    })
+
 
     return (
       <div className={classes.container}>
@@ -616,21 +672,32 @@ class App extends React.Component {
         <div className={classes.main}>
           <div ref={this.messageRef} className={classes.messages}>
           {
-            this.state.messageItems.map((item) => {
-              const classDiv = item.role === 'user' ? `${classes.message} ${classes.user}` : classes.message
+            display_data.map((item) => {
+
+              const classDiv = item.role === 'user' ? `${classes.message} ${classes.user}` : item.role === 'assistant' ? classes.message : classes.datelabel
+              
               return (
                 <div key={item.id} className={classDiv}>
-                  <div className={classes.avatar}>
-                    {
-                      item.role === 'user' ? <AccountIcon /> : <OpenAiIcon />
-                    }
-                  </div>
-                  <div className={classes.textpanel}>
-                    <div className={classes.text}>
-                      <div className={classes.textContent}>{item.content}</div>
-                      <div className={classes.datetime}>{getDatetime(item.id)}</div>
-                    </div>
-                  </div>
+                  {
+                    item.role === 'datetime' &&
+                    <div className={classes.datelabeltext}>{getDatetime(item.content, 1)}</div>
+                  }
+                  {
+                    item.role !== 'datetime' &&
+                    <>
+                      <div className={classes.avatar}>
+                        {
+                          item.role === 'user' ? <AccountIcon /> : <OpenAiIcon />
+                        }
+                      </div>
+                      <div className={classes.textpanel}>
+                        <div className={classes.text}>
+                          <div className={classes.textContent}>{item.content}</div>
+                          <div className={classes.datetime}>{getDatetime(item.id)}</div>
+                        </div>
+                      </div>
+                    </>
+                  }
                 </div>
               )
             })
@@ -701,6 +768,16 @@ class App extends React.Component {
             </Box>
           </div>
         </div>
+        {
+          this.state.isSettingsShown && createPortal(
+            <DialogSettings 
+            defApiMode={this.apiMode}
+            onConfirm={this.handleUpdateSettings}
+            onClose={this.handleCloseSettings}
+            />,
+            document.body,
+          )
+        }
       </div>
     )
 
