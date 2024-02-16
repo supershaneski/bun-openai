@@ -64,7 +64,7 @@ route.post('/', async (req) => {
         
         if(check_file.size < minFileSize) {
         
-            console.log('** audio data is probably empty **')
+            console.log('Audio data has probably no detectable speech data')
     
             return new Response(JSON.stringify({
                     text: '',
@@ -74,9 +74,76 @@ route.post('/', async (req) => {
     
         }
 
+        const isAPIMode = false
+        const language = 'ja' // en, ja
+        const temperature = 0
+
+        let text_data = ''
+
+        if(isAPIMode) {
+
+        } else {
+
+            ///// use local whisper using whisper 2 api
+            const outdir = path.join('public', 'uploads') 
+
+            let whisper_command = `whisper './${filepath}' --task --language ${language} --temperature ${temperature} --model tiny --output_dir '${outdir}'`
+        
+            const whisper_retval = await new Promise((resolve, reject) => {
+
+                exec(whisper_command, (error, stdout, stderr) => {
+                    
+                    if (error) {
+                        
+                        resolve({
+                            status: 'error',
+                            error: 'Failed to transcribe'
+                        })
+
+                    } else {
+
+                        resolve({
+                            status: 'ok',
+                            error: stderr,
+                            out: stdout
+                        })
+
+                    }
+                    
+                })
+
+            })
+
+            console.log('output...', whisper_retval, (new Date()).toLocaleTimeString())
+
+            if(whisper_retval.status === "error" || whisper_retval.out.length === 0) {
+                
+                console.log('No transcription')
+
+                return new Response(JSON.stringify({
+                    text: '',
+                }), {
+                    status: 200,
+                })
+
+            }
+
+            // read the output text file instead of the out property which contains timeline
+            try {
+                
+                text_data = fs.readFileSync(`${filepath}.txt`, 'utf8')
+            
+            } catch(error) {
+                
+                console.log(error.message)
+
+            }
+
+        }
+
         return new Response(
             JSON.stringify({
-                text: 'Lorem ipsum dolor...'
+                text: text_data
             }),
             { status: 200, headers: CORS_HEADERS }
         )
