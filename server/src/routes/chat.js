@@ -14,7 +14,7 @@ route.post('/', async (req) => {
     
     const { previous, query } = await req.json()
 
-    if(!query || !Array.isArray(previous)) {
+    if(!Array.isArray(previous)) {
 
         return new Response('Bad request', { status: 400, headers: CORS_HEADERS });
         
@@ -31,8 +31,95 @@ route.post('/', async (req) => {
         if(context.length > 0) {
             messages = messages.concat(context)
         }
-        messages.push({ role: 'user', content: query })
+        if(query) {
+            messages.push({ role: 'user', content: query })
+        }
 
+        const response = await openai.chat({
+            messages,
+            temperature: 0.2,
+            tools: [
+                { type: 'function', function: get_weather },
+            ]
+        })
+
+        console.log(response)
+        console.log(response.message)
+
+        return new Response(JSON.stringify({
+            iat: Date.now(),
+            message: response.message
+        }), { status: 200, headers: { ...CORS_HEADERS, "Content-Type": "application/json" } })
+    
+
+    } catch(error) {
+        console.log(error.message)
+        throw new Error(error.message)
+    }
+
+})
+
+
+route.post('/tools', async (req) => {
+    
+    const { previous, tool_calls } = await req.json()
+
+    if(!Array.isArray(tool_calls) || !Array.isArray(previous)) {
+
+        return new Response('Bad request', { status: 400, headers: CORS_HEADERS });
+        
+    }
+
+    let tool_outputs = []
+
+    for(let tool of tool_calls) {
+        
+        const tool_id = tool.id
+        const tool_name = tool.function.name
+
+        const tool_args = JSON.parse(tool.function.arguments)
+
+        let tool_output = { status: 'error', message: 'function not found' }
+
+        if(tool_name === 'get_weather') {
+
+            const mock_temp = (10 + 20 * Math.random()).toFixed(1)
+
+            const mock_outlook = ['sunny', 'cloudy', 'rainy']
+
+            const mock_chance = Math.floor(mock_outlook.length * Math.random())
+
+            tool_output = { status: 'success', outlook: mock_outlook[mock_chance], temperature: mock_temp, unit: 'celsius', ...tool_params }
+        
+        }
+
+        tool_outputs.push({ 
+            tool_call_id: tool_id, 
+            role: 'tool', 
+            name: tool_name, 
+            content: JSON.stringify(tool_output, null, 2)
+        })
+
+    }
+
+    const context = trim_array(previous)
+
+    let system_prompt = `You are a helpful assistant.\n` +
+        `Today is ${new Date()}.`
+    
+    try {
+
+        let messages = [{ role: 'system', content: system_prompt }]
+        if(context.length > 0) {
+            messages = messages.concat(context)
+        }
+
+        messages.push({ role: 'assistant', content: null, tool_calls })
+
+        for(let output of tool_outputs) {
+            messages.push(output)
+        }
+        
         const response = await openai.chat({
             messages,
             temperature: 0.2,
