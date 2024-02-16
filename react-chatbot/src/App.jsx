@@ -19,7 +19,7 @@ import { storeMessages, getStoredMessages, getDatetime } from './lib/utils'
 
 import classes from './App.module.css'
 
-const MIN_DECIBELS = -50
+const MIN_DECIBELS = -70
 
 class App extends React.Component {
 
