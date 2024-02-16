@@ -5,6 +5,7 @@ import IconButton from '@mui/material/IconButton'
 import TextField from '@mui/material/TextField'
 import InputAdornment from '@mui/material/InputAdornment'
 
+import SettingsIcon from '@mui/icons-material/Settings'
 import SendIcon from '@mui/icons-material/Send'
 import ClearIcon from '@mui/icons-material/Clear'
 import MicOffIcon from '@mui/icons-material/MicOff'
@@ -19,7 +20,7 @@ import { storeMessages, getStoredMessages, getDatetime } from './lib/utils'
 
 import classes from './App.module.css'
 
-const MIN_DECIBELS = -70
+const MIN_DECIBELS = -50
 
 class App extends React.Component {
 
@@ -81,6 +82,7 @@ class App extends React.Component {
     this.handleAudioEnded = this.handleAudioEnded.bind(this)
 
     this.handleReset = this.handleReset.bind(this)
+    this.handleSettings = this.handleSettings.bind(this)
 
   }
 
@@ -320,6 +322,8 @@ class App extends React.Component {
     
     console.log("stop", (new Date()).toLocaleTimeString())
 
+    if(this.state.isLoading) return
+
     const blob = new Blob(this.chunks, { type: 'audio/webm;codecs=opus' })
     const name = `file${Date.now()}` + Math.round(Math.random() * 100000) + `.webm`
     const file = new File([blob], name, { type: 'audio/webm' })
@@ -332,12 +336,12 @@ class App extends React.Component {
 
     console.log('send audio data...', (new Date()).toLocaleTimeString())
 
+    this.setState({
+      isLoading: true
+    })
+
     try {
-
-      this.setState({
-        isLoading: true
-      })
-
+      
       let formData1 = new FormData()
       formData1.append('file', file, name)
       formData1.append('name', name)
@@ -354,18 +358,32 @@ class App extends React.Component {
       const result = await response.json()
 
       console.log('voice', result, (new Date()).toLocaleTimeString())
+
+      if(result.text) {
+
+        this.setState({
+          isLoadingText: true,
+        })
+    
+        this.scrollToTop()
+
+        await this.submitQuery(result.text)
+
+      } else {
+
+        this.setState({
+          isLoading: false
+        })
+
+      }
       
     } catch(error) {
 
       console.log(error.message)
-      
-    } finally {
 
       this.setState({
         isLoading: false
       })
-      
-      console.log("end voice")
       
     }
 
@@ -574,6 +592,10 @@ class App extends React.Component {
     
   }
 
+  handleSettings() {
+    //
+  }
+
   render() {
 
     /*
@@ -586,6 +608,9 @@ class App extends React.Component {
         <div className={classes.header}>
           <IconButton disabled={this.state.messageItems.length === 0} onClick={this.handleReset}>
             <RestartIcon />
+          </IconButton>
+          <IconButton onClick={this.handleSettings} disabled={this.state.isLoading || this.state.isLoadingText || this.state.isRecording || this.state.isSpeaking}>
+            <SettingsIcon />
           </IconButton>
         </div>
         <div className={classes.main}>

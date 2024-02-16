@@ -1,5 +1,7 @@
 import path from 'path'
+import * as fs from 'node:fs'
 import { exec } from 'child_process'
+import * as openai from '../services/openai'
 //import * as openai from '../services/openai'
 import Router from '../lib/router'
 import { CORS_HEADERS } from '../lib/cors'
@@ -67,7 +69,7 @@ route.post('/', async (req) => {
             console.log('Audio data has probably no detectable speech data')
     
             return new Response(JSON.stringify({
-                    text: '',
+                    text: 'Good morning...', // test
                 }), 
                 { status: 200, headers: CORS_HEADERS }
             )
@@ -75,12 +77,24 @@ route.post('/', async (req) => {
         }
 
         const isAPIMode = false
-        const language = 'ja' // en, ja
+        const language = 'en' // en, ja
         const temperature = 0
 
         let text_data = ''
 
         if(isAPIMode) {
+
+            //filepath = path.join('public', 'uploads', 'test-file170753061013795735.webm')
+
+            const result = await openai.transcribe({
+                file: fs.createReadStream(filepath),
+                language: language, //en
+                temperature: temperature //0.2,
+            })
+    
+            console.log('whisper api', result, (new Date()).toLocaleTimeString())
+    
+            text_data = result.text
 
         } else {
 
@@ -143,7 +157,7 @@ route.post('/', async (req) => {
 
         return new Response(
             JSON.stringify({
-                text: text_data
+                text: 'Hello there' //text_data
             }),
             { status: 200, headers: CORS_HEADERS }
         )

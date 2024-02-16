@@ -29,22 +29,26 @@ function formatNumber(n) {
   return String(n).padStart(2, '0')
 }
 
+function getMonthName(month) {
+  return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][month]
+}
+
 export function getDatetime(stime) {
 
   const now = new Date()
 
   let now_year = now.getFullYear()
-  let now_month = now.getMonth() + 1
+  let now_month = now.getMonth()
   let now_date = now.getDate()
-  now_month = formatNumber(now_month)
+  //now_month = formatNumber(now_month)
   now_date = formatNumber(now_date)
 
   const odate = new Date(stime)
   
   let syear = odate.getFullYear()
-  let smonth = odate.getMonth() + 1
+  let smonth = odate.getMonth()
   let sdate = odate.getDate()
-  smonth = formatNumber(smonth)
+  //smonth = formatNumber(smonth)
   sdate = formatNumber(sdate)
 
   let shour = odate.getHours()
@@ -53,14 +57,16 @@ export function getDatetime(stime) {
   shour = formatNumber(shour)
   sminute = formatNumber(sminute)
 
+  const month = getMonthName(smonth)
+
   if(now_year !== syear) {
-    return [syear, smonth, sdate].join('-')
+    return `${month} ${sdate}, ${syear}`
   } else {
     if(now_month !== smonth) {
-      return [smonth, sdate].join('-')
+      return `${month} ${sdate}`
     } else {
       if(now_date !== sdate) {
-        return [[smonth, sdate].join('-'),[shour, sminute].join(':')].join(' ')
+        return [`${month} ${sdate}`,[shour, sminute].join(':')].join(' ')
       } else {
         return [shour, sminute].join(':')
       }
