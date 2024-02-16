@@ -19,6 +19,8 @@ import { storeMessages, getStoredMessages, getDatetime } from './lib/utils'
 
 import classes from './App.module.css'
 
+const MIN_DECIBELS = -50
+
 class App extends React.Component {
 
   constructor(props) {
@@ -179,7 +181,7 @@ class App extends React.Component {
     const audioStreamSource = audioContext.createMediaStreamSource(stream)
     const analyser = audioContext.createAnalyser()
     analyser.maxDecibels = -10
-    analyser.minDecibels = -70
+    analyser.minDecibels = MIN_DECIBELS
     audioStreamSource.connect(analyser)
 
     const bufferLength = analyser.frequencyBinCount
@@ -218,14 +220,17 @@ class App extends React.Component {
 
             } else {
 
-              this.setState({
-                isRecording: true
-              })
+              if(!this.state.isLoading) {
 
-              if(this.mediaRecorder?.state && this.mediaRecorder.state !== 'recording') {
-                this.mediaRecorder.start()
+                this.setState({
+                  isRecording: true
+                })
+  
+                if(this.mediaRecorder?.state && this.mediaRecorder.state !== 'recording') {
+                  this.mediaRecorder.start()
+                }
+
               }
-              
 
             }
 
@@ -315,8 +320,6 @@ class App extends React.Component {
     
     console.log("stop", (new Date()).toLocaleTimeString())
 
-    if(this.state.isLoading) return
-        
     const blob = new Blob(this.chunks, { type: 'audio/webm;codecs=opus' })
     const name = `file${Date.now()}` + Math.round(Math.random() * 100000) + `.webm`
     const file = new File([blob], name, { type: 'audio/webm' })
@@ -329,11 +332,11 @@ class App extends React.Component {
 
     console.log('send audio data...', (new Date()).toLocaleTimeString())
 
-    this.setState({
-      isLoading: true,
-    })
-
     try {
+
+      this.setState({
+        isLoading: true
+      })
 
       let formData1 = new FormData()
       formData1.append('file', file, name)
@@ -361,7 +364,9 @@ class App extends React.Component {
       this.setState({
         isLoading: false
       })
-
+      
+      console.log("end voice")
+      
     }
 
   }
@@ -372,6 +377,8 @@ class App extends React.Component {
     if(this.state.isLoading) return
 
     if(this.state.inputText.length < 2) return
+
+    console.log("submit...")
 
     const text = this.state.inputText
 

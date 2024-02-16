@@ -58,7 +58,7 @@ MicButton.propTypes = {
 
 function areEqual(prevProps, nextProps) {
 
-    if(prevProps.isReady !== nextProps.isReady || prevProps.isRecording !== nextProps.isRecording) {
+    if(prevProps.isReady !== nextProps.isReady || prevProps.isRecording !== nextProps.isRecording || prevProps.disabled !== nextProps.disabled) {
         return false
     }
 
