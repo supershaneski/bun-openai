@@ -85,6 +85,7 @@
   border-radius: 5px;
 }
 .textContent {
+  min-width: 5rem;
   white-space: pre-wrap;
   color: #fff;
 }

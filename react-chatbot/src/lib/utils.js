@@ -1,5 +1,30 @@
-
 const STORE_KEY = 'bun/openai/message/items'
+const BASE_STORE_KEY = 'bun/openai'
+
+export function getStorageData(relkey, defvalue = null) {
+  
+  const raw_data = localStorage.getItem(BASE_STORE_KEY + relkey)
+  if(raw_data) {
+
+    try {
+
+      return JSON.parse(raw_data)
+
+    } catch(error) {
+      console.log(error.message)
+    }
+
+  }
+
+  return defvalue
+
+}
+
+export function setStorageData(relkey, data) {
+  
+  localStorage.setItem(BASE_STORE_KEY + relkey, JSON.stringify(data))
+
+}
 
 export function getStoredMessages() {
 
@@ -23,6 +48,10 @@ export function storeMessages(data) {
 
   localStorage.setItem(STORE_KEY, JSON.stringify(data))
       
+}
+
+export const getUniqueId = () => {
+  return Date.now() + Math.random().toString(36).slice(2)
 }
 
 function formatNumber(n) {

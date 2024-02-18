@@ -18,7 +18,12 @@ import LoadingText from './components/loadingtext'
 import OpenAiIcon from './components/openaiicon'
 import MicButton from './components/micbutton'
 
-import { storeMessages, getStoredMessages, getDatetime, formatDatetime } from './lib/utils'
+import { getStorageData, setStorageData, 
+  //storeMessages, 
+  //getStoredMessages, 
+  getUniqueId,
+  getDatetime, 
+  formatDatetime } from './lib/utils'
 
 import classes from './App.module.css'
 
@@ -36,7 +41,8 @@ class App extends React.Component {
     this.messageRef = React.createRef()
 
     // simple persistent data
-    let default_messages = getStoredMessages()
+    let default_messages = getStorageData('/message/items', []) //getStoredMessages()
+    let default_api_mode = getStorageData('/api/mode', 'chat-api-streaming')
 
     this.state = {
       isVoiceEnabled: false,
@@ -53,9 +59,10 @@ class App extends React.Component {
       inputText: '',
 
       messageItems: default_messages,
+
     }
 
-    this.apiMode = 'chat-api-streaming'
+    this.apiMode = default_api_mode //'chat-api-streaming'
 
     this.timer = null
     this.count = 0
@@ -81,6 +88,7 @@ class App extends React.Component {
     this.procAudioData = this.procAudioData.bind(this)
     this.procCountDown = this.procCountDown.bind(this)
     this.submitQuery = this.submitQuery.bind(this)
+    this.submitQueryStream = this.submitQueryStream.bind(this)
     this.scrollToTop = this.scrollToTop.bind(this)
 
     this.handleAudioLoad = this.handleAudioLoad.bind(this)
@@ -151,7 +159,6 @@ class App extends React.Component {
 
   }
 
-
   handleError(error) {
     console.log('Error', error)
   }
@@ -173,7 +180,7 @@ class App extends React.Component {
 
       // assuming the mimetype fails
       options = {
-          audioBitsPerSecond: 128000,
+        audioBitsPerSecond: 128000,
       }
 
       this.mediaRecorder = new MediaRecorder(stream, options)
@@ -426,7 +433,15 @@ class App extends React.Component {
 
     this.scrollToTop()
 
-    await this.submitQuery(text)
+    if(this.apiMode === 'chat-api') {
+
+      await this.submitQuery(text)
+
+    } else {
+
+      await this.submitQueryStream(text)
+
+    }
 
   }
 
@@ -444,9 +459,174 @@ class App extends React.Component {
     if(message) {
 
       const new_user_message = {
-        id: Date.now(),
+        id: getUniqueId(),
         role: 'user',
-        content: message
+        content: message,
+        created_at: Date.now()
+      }
+
+      this.setState((prev) => ({
+        messageItems: [...prev.messageItems, ...[new_user_message]],
+      }))
+
+      this.scrollToTop()
+
+    }
+
+    try {
+
+      let assistant_id = getUniqueId()
+
+      let new_assistant_message = {
+        id: assistant_id,
+        role: 'assistant',
+        content: '',
+        created_at: Date.now()
+      }
+
+      this.setState((prev) => ({
+        messageItems: [...prev.messageItems, ...[new_assistant_message]],
+      }))
+
+      let is_completed = false
+      let max_loop = 30
+      let count = 0
+
+      let tool_calls = []
+
+      do {
+
+        console.log('Loop', count)
+
+        let payload = { previous }
+        let relurl = 'chat'
+
+        if(tool_calls.length > 0) {
+
+          payload.tool_calls = tool_calls
+          relurl = 'chat/tools'
+
+        } else {
+
+          payload.query = message
+
+        }
+        
+        const response = await fetch(`${this.baseUrl}/${relurl}`, {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            previous,
+            query: message,
+            tool_calls,
+          })
+        })
+
+        if(!response.ok) {
+          console.log('Oops, an error occurred', response.status)
+        }
+
+        const result = await response.json()
+
+        console.log(result.message)
+
+        if(result.message.content) {
+
+          this.setState((prev) => ({
+            messageItems: prev.messageItems.map((item) => {
+              let item_content = item.content
+              if(item.id === assistant_id) {
+                item_content = item_content ? item.content + '\n' + result.message.content : result.message.content
+              }
+              return {
+                ...item,
+                content: item_content
+              }
+            })
+          }))
+
+          this.scrollToTop()
+
+        }
+
+        if(result.message.tool_calls) {
+
+          if(message) { // first query
+
+            previous.push({ role: 'user', content: message })
+
+            message = ''
+
+          }
+
+          if(result.message.content) {
+
+            previous.push({ role: 'assistant', content: result.message.content })
+  
+          }
+
+          tool_calls = result.message.tool_calls
+
+        } else {
+
+          is_completed = true
+
+        }
+
+        count++
+
+        if(count >= max_loop) {
+          is_completed = true
+        }
+
+      } while(!is_completed)
+      
+    } catch(error) {
+      
+      console.log(error.message)
+
+    } finally {
+      
+      this.setState({
+        isLoading: false,
+        isLoadingText: false,
+      })
+
+      setTimeout(() => {
+        
+        // store data in persistent storage
+        //storeMessages(this.state.messageItems)
+        setStorageData('/message/items', this.state.messageItems)
+
+        this.inputRef.current.focus()
+
+      }, 300)
+
+    }
+
+  }
+  
+  async submitQueryStream(query = '') {
+    
+    let previous = this.state.messageItems.filter((item) => item.role === 'user' || item.role === 'assistant').map((item) => {
+      return {
+        role: item.role,
+        content: item.content,
+      }
+    })
+    
+    let message = query
+
+    if(message) {
+
+      const new_user_message = {
+        id: getUniqueId(),
+        role: 'user',
+        content: message,
+        created_at: Date.now()
       }
 
       this.setState((prev) => ({
@@ -473,12 +653,13 @@ class App extends React.Component {
 
       const reader = response.body.getReader()
 
-      const assistant_id = Date.now()
+      const assistant_id = getUniqueId()
 
       const new_assistant_message = {
         id: assistant_id,
         role: 'assistant',
-        content: ''
+        content: '',
+        created_at: Date.now()
       }
       
       this.setState((prev) => ({
@@ -531,7 +712,8 @@ class App extends React.Component {
       setTimeout(() => {
         
         // store data in persistent storage
-        storeMessages(this.state.messageItems)
+        //storeMessages(this.state.messageItems)
+        setStorageData('/message/items', this.state.messageItems)
 
         this.inputRef.current.focus()
 
@@ -633,6 +815,8 @@ class App extends React.Component {
     this.setState({
       isSettingsShown: false,
     })
+    
+    setStorageData('/api/mode', mode)
 
   }
 
@@ -642,13 +826,14 @@ class App extends React.Component {
     let sdatetime = ''
     this.state.messageItems.forEach((item, index) => {
 
-      const datetime = formatDatetime(item.id)
+      const raw_datetime = item.created_at
+      const datetime = formatDatetime(item.created_at)
       
       if(index === 0) {
         
         sdatetime = datetime
 
-        display_data.push({ id: sdatetime, role: 'datetime', content: sdatetime })
+        display_data.push({ id: raw_datetime, role: 'datetime', content: sdatetime, created_at: raw_datetime })
         display_data.push(item)
 
       } else {
@@ -657,7 +842,7 @@ class App extends React.Component {
           
           sdatetime = datetime
 
-          display_data.push({ id: sdatetime, role: 'datetime', content: sdatetime })
+          display_data.push({ id: raw_datetime, role: 'datetime', content: sdatetime, created_at: raw_datetime })
           display_data.push(item)
 
         } else {
@@ -702,8 +887,8 @@ class App extends React.Component {
                       </div>
                       <div className={classes.textpanel}>
                         <div className={classes.text}>
-                          <div className={classes.textContent}>{item.content}</div>
-                          <div className={classes.datetime}>{getDatetime(item.id)}</div>
+                          <div className={classes.textContent}>{item.content ? item.content : '...'}</div>
+                          <div className={classes.datetime}>{getDatetime(item.created_at)}</div>
                         </div>
                       </div>
                     </>

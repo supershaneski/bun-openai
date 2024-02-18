@@ -62,6 +62,8 @@ route.post('/', async (req) => {
 
 route.post('/tools', async (req) => {
     
+    console.log("tools")
+
     const { previous, tool_calls } = await req.json()
 
     if(!Array.isArray(tool_calls) || !Array.isArray(previous)) {
