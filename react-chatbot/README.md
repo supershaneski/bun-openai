@@ -46,8 +46,8 @@ Click the **Settings** icon from the top left corner to open the Settings dialog
 
 We can call the API by different modes:
 
-* [Chat Completions](#chat-completions)
-* Chat Completions with streaming (default)
+* Chat Completions
+* Chat Completions with streaming
 * Assistants API with ***mock*** streaming (not yet available)
 
 Most people will probably just use **Chat Completions with streaming**. But sometimes streaming might not be necessary and depending on the limitation of your backend provider, you might be stuck without streaming option. So I am putting it here for reference in case someone might need it.
