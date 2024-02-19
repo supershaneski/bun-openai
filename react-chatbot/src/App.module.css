@@ -80,12 +80,14 @@
   display: flex;
 }
 .text {
+  position: relative;
   background-color: #0084ff;
   padding: .5rem;
   border-radius: 5px;
+  min-width: 40%;
+  max-width: 90%;
 }
 .textContent {
-  min-width: 5rem;
   white-space: pre-wrap;
   color: #fff;
 }

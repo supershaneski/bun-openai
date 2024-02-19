@@ -38,6 +38,8 @@ class Router {
     }
 
     handler(req) {
+
+        console.log('route handler')
         
         const { pathname } = new URL(req.url)
 

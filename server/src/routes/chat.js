@@ -59,11 +59,8 @@ route.post('/', async (req) => {
 
 })
 
-
 route.post('/tools', async (req) => {
     
-    console.log("tools")
-
     const { previous, tool_calls } = await req.json()
 
     if(!Array.isArray(tool_calls) || !Array.isArray(previous)) {
@@ -91,7 +88,7 @@ route.post('/tools', async (req) => {
 
             const mock_chance = Math.floor(mock_outlook.length * Math.random())
 
-            tool_output = { status: 'success', outlook: mock_outlook[mock_chance], temperature: mock_temp, unit: 'celsius', ...tool_params }
+            tool_output = { status: 'success', outlook: mock_outlook[mock_chance], temperature: mock_temp, unit: 'celsius', ...tool_args }
         
         }
 
