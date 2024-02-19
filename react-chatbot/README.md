@@ -8,7 +8,14 @@ This is a sample chatbot application built using [Vite + React](https://vitejs.d
 
 ![Screenshot](./docs/screenshot1.png)
 
-I am using the latest model, `gpt-3.5-turbo-0125`, which can handle parallel function calling.
+You can submit message using the text input or use audio capture.
+Click the mic icon to enable audio capture.
+
+Recording will only start if voice or sound is detected. You can adjust the sensitivity of the detection by tweaking the value of `MIN_DECIBELS`. By default the values is set at **-50dB**. Recording will stop and the audio sent to the backend for transcription if no audio is detected for **2500ms**. This is the average range of pause in normal speech. You can adjust this value by editing `MAX_PAUSE`.
+
+Transcription will be done by either the locally installed [Whisper python module](https://github.com/openai/whisper) or [Whisper API](https://platform.openai.com/docs/guides/speech-to-text). Check the [/transcribe](/server/src/routes/transcribe.js) endpoint handler in the server. You will also need to install `ffmpeg` as I use it to remove silent parts from the uploaded audio data.
+
+I am using the latest model, `gpt-3.5-turbo-0125`, for the Chat Completions API, which can handle parallel function calling.
 
 As of now, it just have one sample function, `get_weather`:
 
