@@ -28,6 +28,7 @@ import { getStorageData, setStorageData,
 import classes from './App.module.css'
 
 const MIN_DECIBELS = -50
+const MAX_PAUSE = 2500
 
 class App extends React.Component {
 
@@ -267,7 +268,7 @@ class App extends React.Component {
 
               if(this.state.isCountDown) {
 
-                if(this.count >= 2500) {
+                if(this.count >= MAX_PAUSE) {
 
                   if(this.mediaRecorder?.state && this.mediaRecorder.state !== 'inactive') {
                     this.mediaRecorder.stop()
