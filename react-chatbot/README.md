@@ -135,14 +135,13 @@ do {
 } while(!is_completed)
 ```
 
-If you are going to implement a chatbot with tools, you will need to enclose your API call in a loop to handle subsequent API calls that the AI might be invoked.
+If you’re planning to implement a chatbot with tools, it’s necessary to enclose your API call within a loop. This loop will handle any subsequent API calls that the AI might invoke. If there are no tool calls, we immediately set `is_completed` to true. However, if we continue to receive tool calls, we make another API call.
 
-If there are no tool calls, we immediately set `is_completed` to true. However, as long as we receive tool calls, we call the API again. So that it will be much easier to understand, I separate the endpoint that handles the tool calls. See `/chat/tools` handler from [chat.js](/server/src/routes/chat.js).
+To simplify understanding, I’ve separated the endpoint that manages the tool calls. You can refer to the `/chat/tools` handler in [chat.js](/server/src/routes/chat.js).
 
-I am doing this so that the message content that the AI might send in between API calls can be handled and written in the UI. This is where you might see, "Please wait for awhile..." as the AI process the request.
+This approach ensures that any message content the AI might send between API calls can be properly managed and displayed in the UI. This is why you might see a message like, ***‘Please wait for a while…’*** as the AI processes the request.
 
-We are also putting a guard to prevent the AI from calling too many API calls. I set the maximum loop to 30 but you can just adjust it.
-
+We’ve also implemented a safeguard to prevent the AI from making excessive API calls. I’ve set the maximum loop count to 30, but this can be adjusted as needed.
 
 ## Chat Completions with streaming
 
@@ -189,9 +188,9 @@ while(!is_completed) {
 }
 ```
 
-As you can see from the simplified snippet, we just call the streaming endpoint once then get all the texts spewed, assemble it in the UI, and just wait until streaming is done or aborted.
+In the simplified snippet provided, you can see that we only call the streaming endpoint once. We then gather all the emitted text, assemble it within the user interface, and simply wait until the streaming process is either completed or aborted.
 
-In reality, if you look in the [/chat/streaming](/server/src/routes/chat.js) handler, when the request invokes tool calls we are actually also doing a loop to handle subsuquent API calls, like the one we did in non-streaming mode.
+However, if you check into the [/chat/streaming](/server/src/routes/chat.js) handler, you’ll notice that when the request triggers tool calls, we also execute a loop to manage subsequent API calls, similar to the process we follow in non-streaming mode.
 
 
 # Setup
